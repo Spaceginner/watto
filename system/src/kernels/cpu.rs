@@ -156,12 +156,18 @@ impl Kernel for Cpu {
                     },
                     Instruction::Copy(a, b) => {
                         self.regs[b.to_index()] = self.regs[a.to_index()];
-                        self.advance_si(instr);
+                        
+                        if b != Register::ServiceInstruction {
+                            self.advance_si(instr);
+                        };
                     },
                     Instruction::Swap(a, b) => {
                         (self.regs[a.to_index()], self.regs[b.to_index()])
                             = (self.regs[b.to_index()], self.regs[a.to_index()]);
-                        self.advance_si(instr);
+                        
+                        if !((a == Register::ServiceInstruction) ^ (b == Register::ServiceInstruction)) {
+                            self.advance_si(instr);
+                        };
                     },
 
                     Instruction::Write8 => {
