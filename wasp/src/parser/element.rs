@@ -71,7 +71,7 @@ impl Display for ElementValue {
 impl Display for LiteralValue {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Number(val) => write!(f, "#{val}"),
+            Self::Number(val) => write!(f, "#d{val}"),
             Self::String(s) => write!(f, "\"{s}\""),  // todo escape s
             Self::Char(c) => write!(f, "'{c}"),  // todo escape c..?
         }
