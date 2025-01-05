@@ -5,6 +5,7 @@
 use std::error::Error;
 use std::io::{Read, Write};
 use clap::Parser;
+use crate::argparser::Format;
 use crate::assembler::Assembler;
 use crate::lexer::Lexer;
 use crate::processor::Processor;
@@ -15,12 +16,12 @@ mod parser;
 mod processor;
 mod assembler;
 
-fn handle_error(mut err: &dyn Error) -> ! {
-    println!("error occurred: {err}");
+fn handle_error(context: &'static str, mut err: &dyn Error) -> ! {
+    eprintln!("while {context}, an error occurred: {err}");
     
     while let Some(source) = err.source() {
         err = source;
-        println!("source of which: {err}");
+        eprintln!("source of which: {err}");
     };
     
     std::process::exit(1)
@@ -31,15 +32,57 @@ fn main() {
 
     let source = {
         let mut buf = String::new();
-        args.source.read_all().unwrap().read_to_string(&mut buf).unwrap();
+        args.source.read_all().unwrap().read_to_string(&mut buf).unwrap_or_else(|err| handle_error("reading source", &err));
         buf
     };
+    
+    match args.format {
+        Format::Binary => {
+            let prog = 
+                Assembler::new(Processor::new(parser::Parser::new(Lexer::new(source.chars())), None, None, false))
+                .assemble()
+                .unwrap_or_else(|err| handle_error("assembling program", &err));
 
-    let prog = Assembler::new(Processor::new(parser::Parser::new(Lexer::new(source.chars())), None, None, false)).assemble().unwrap_or_else(|err| handle_error(&err));
+            let mut out = args.out.create_with_len(prog.len() as u64).unwrap_or_else(|err| handle_error("creating output stream", &err));
+
+            if !args.dry {
+                out.write_all(&prog).unwrap_or_else(|err| handle_error("writing to output", &err));
+            };
+        },
+        Format::Words => {
+            let words = Lexer::lex(&source).unwrap_or_else(|err| handle_error("lexing program", &err));
+            
+            let mut out = args.out.create().unwrap_or_else(|err| handle_error("creating output stream", &err));
+
+            if !args.dry {
+                for word in words {
+                    writeln!(out, "{word}").unwrap_or_else(|err| handle_error("writing to output", &err));
+                };
+            };
+        },
+        Format::Elements => {
+            let elements = parser::Parser::parse(&source).unwrap_or_else(|err| handle_error("parsing program", &err));
+
+            let mut out = args.out.create().unwrap_or_else(|err| handle_error("creating output stream", &err));
+
+            if !args.dry {
+                for elem in elements {
+                    writeln!(out, "{elem}").unwrap_or_else(|err| handle_error("writing to output", &err));
+                };
+            };
+        },
+        Format::Instructs => {
+            let instructs = Processor::process(&source).unwrap_or_else(|err| handle_error("processing program", &err));
+
+            let mut out = args.out.create().unwrap_or_else(|err| handle_error("creating output stream", &err));
+
+            if !args.dry {
+                for instr in instructs {
+                    writeln!(out, "{instr}").unwrap_or_else(|err| handle_error("writing to output", &err));
+                };
+            };
+        },
+    }
+
     
-    let mut out = args.out.create_with_len(prog.len() as u64).unwrap();
-    
-    if !args.dry {
-        out.write_all(&prog).unwrap();
-    };
 }
