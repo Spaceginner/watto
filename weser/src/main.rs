@@ -17,7 +17,7 @@ fn main() {
             0x00,
             Box::new(Cpu::new(emu_args.ram_size, &prog)) as Box<dyn Kernel>,
             emu_args.clock_freq,
-            true,
+            emu_args.verbose,
         )
     ];
     

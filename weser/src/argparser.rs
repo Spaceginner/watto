@@ -13,6 +13,10 @@ pub struct EmuArgs {
     #[arg(long = "ram", default_value_t = 4096)]
     /// ram size in bytes
     pub ram_size: u16,
+    
+    #[arg(long, short, default_value_t)]
+    /// print out cpu state each tick
+    pub verbose: bool,
 
     /// path to the program
     #[arg(value_parser = clap::value_parser!(ClioPath).exists().is_file())]
