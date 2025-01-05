@@ -44,6 +44,7 @@ impl<PE> Display for AssemblingError<PE>
 pub enum InvalidInstructInfo {
     ModifyingLabel,
     ReferenceOutOfBounds,
+    UnknownVariable,
 }
 
 
@@ -52,6 +53,7 @@ impl Display for InvalidInstructInfo {
         match self {
             Self::ModifyingLabel => write!(f, "reassigning label is forbidden"),
             Self::ReferenceOutOfBounds => write!(f, "reference leads to non-existent instruction"),
+            Self::UnknownVariable => write!(f, "such variable does not exist"),
         }
     }
 }

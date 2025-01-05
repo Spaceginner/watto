@@ -82,7 +82,7 @@ impl<P, PE> Assembler<P, PE>
                                         if let Some(val) = variables.get(name) {
                                             prog.extend(val.value.to_le_bytes());
                                         } else {
-                                            return Err(AssemblingError::InvalidInstruct { instruct: Instruct::new(pos, labels, Op::InsertCpuInstruction(id, args)), info: InvalidInstructInfo::ReferenceOutOfBounds });
+                                            return Err(AssemblingError::InvalidInstruct { instruct: Instruct::new(pos, labels, Op::InsertCpuInstruction(id, args)), info: InvalidInstructInfo::UnknownVariable });
                                         };
                                     },
                                 },
