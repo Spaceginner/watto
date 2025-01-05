@@ -28,7 +28,7 @@ pub struct Processor<P, PE>
     include_abs: bool,
     
     macros: HashMap<String, Macro>,
-    cur_macro: Option<CurrentMacro>,
+    cur_macro: Vec<CurrentMacro>,
 }
 
 
@@ -38,7 +38,7 @@ impl<P, PE> Processor<P, PE>
         PE: Error + Clone + 'static
 {
     pub fn new(parser: P, include_lib_root: Option<PathBuf>, include_rel_root: Option<PathBuf>, include_abs: bool) -> Self {
-        Self { parser, include_lib_root, include_rel_root, include_abs, err: None, macros: HashMap::new(), cur_macro: None }
+        Self { parser, include_lib_root, include_rel_root, include_abs, err: None, macros: HashMap::new(), cur_macro: vec![] }
     }
     
     fn err(&mut self, err: ProcessingError<PE>) -> Option<Result<Instruct, ProcessingError<PE>>> {
@@ -47,7 +47,15 @@ impl<P, PE> Processor<P, PE>
     }
     
     fn next_el(&mut self) -> Option<Result<Element, PE>> {
-        self.cur_macro.as_mut().and_then(|m| Some(Ok(m.next()?))).or_else(|| self.parser.next())
+        while let Some(cur_macro) = self.cur_macro.last_mut() {
+            if let Some(el) = cur_macro.next() {
+                return Some(Ok(el))
+            } else {
+                self.cur_macro.pop();
+            };
+        };
+
+        self.parser.next()
     }
 }
 
@@ -212,7 +220,7 @@ impl<P, PE> Iterator for Processor<P, PE>
                                         subs.push(nextcel! { self });
                                     };
                                     
-                                    self.cur_macro = Some(CurrentMacro::new(source, subs));
+                                    self.cur_macro.push(CurrentMacro::new(source, subs));
                                 },
                                 "void" => { return Some(Ok(Instruct { pos, labels, operation: Op::Void })); },
                                 _ => { return Some(Err(ProcessingError::InvalidElement { elem: Element::new(pos, ElementValue::ProcessorInstruction(name)), info: InvalidElementInfo::ProcessorInstructName })); }
