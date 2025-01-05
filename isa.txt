@@ -1,0 +1,50 @@
+regs (16-bit):
+    $si  0000 0000  - service instruction
+    $ss  0000 0001  - service status
+
+    $oa  0001 0000  - operand a
+    $ob  0001 0001  - operand b
+    $oc  0001 0010  - operand c
+
+    $ga  0010 0000  - general a
+    $gb  0010 0001  - general b
+    $gc  0010 0010  - general c
+    $gd  0010 0011  - general d
+
+    $da  0011 0000  - display a
+    $db  0011 0001  - display b
+
+
+instr (encoding: <group> <instr>, ie: `add` is 0b0011_0000):
+- serv 0000:
+    0000 skip        ; does nothing
+    0001 wait        ; while $oa: $oa -= 1
+    0010 pause       ; pauses cpu until *signal* (note: currently within emulator implemented same as stop) (another note: i dont know *what* is signal)
+    0011 stop        ; completely stops cpu
+- regs 0001:
+    0000 set #1 #2   ; $#1 = #2
+    0010 setnz #1 #2 ; if $oc: $#1 = #2
+    0011 setz #1 #2  ; if !$oc: $#1 = #2
+    0100 copy #1 #2  ; $#2 = $#1
+    0101 swap #1 #2  ; ($#2, $#1) = ($#1, $#2)
+- mem 0010 (little endian):  / w for word, b for byte
+    0000 writew      ; $oa = *$oc
+    0001 writeb      ; *$oc = $oa (reads only lower 8-bits)
+    0010 readw       ; $oa = *$oc
+    0011 readb       ; $oa = *$oc (overwrites only lower 8-bits)
+- alu 0011:
+    0000 add         ; $oc = $oa + $ob  / when overflows first bit of $ss is set, otherwise cleared
+    0010 cmp         ; $oc = (($oa >= $ob) << 1) | ($oa == $ob)  / unsigned
+    0011 cmps        ; $oc = (($oa >= $ob) << 1) | ($oa == $ob)  / signed signed
+    0100 and         ; $oc = $oa & $ob
+    0101 or          ; $oc = $oa | $ob
+    0110 xor         ; $oc = $oa ^ $ob
+    0111 rot         ; $oa <<<= 1
+- bus 0100:
+    0000 iow         ; $oc <- $oa
+    0001 ior         ; $oc -> $oa
+    0010 ioww        ; wait for message to be sent (timeout in ticks can be set with $oa, when 0xffff it is disabled)
+    0011 iowr        ; wait for $oc to send message to cpu (if $oc == 0x00, waits for any device) (timeout in ticks can be set with $oa, when 0xffff it is disabled)
+    0100 iocw        ; clears buffer for sending messages
+    0101 iocr        ; clears buffer for receiving messages
+    0111 iorw        ; reads write buffer (if empty $oc = 0x00)
