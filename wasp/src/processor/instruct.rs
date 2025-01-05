@@ -113,7 +113,7 @@ pub enum Argument {
 impl Display for Argument {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Register(reg) => write!(f, "${reg}"),
+            Self::Register(reg) => write!(f, "{reg}"),
             Self::Value(val) => write!(f, "{val}"),
         }
     }
