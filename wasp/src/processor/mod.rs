@@ -55,6 +55,7 @@ impl<P, PE> Processor<P, PE>
             };
         };
 
+        // todo handle not in macro
         self.parser.next()
     }
 }
