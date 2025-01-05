@@ -170,7 +170,7 @@ impl Kernel for Cpu {
                         };
                     },
 
-                    Instruction::Write8 => {
+                    Instruction::WriteByte => {
                         let addr = self.regs[reg!(oc)] as usize;
                         let val = self.regs[reg!(oa)] as u8;
 
@@ -178,8 +178,8 @@ impl Kernel for Cpu {
                         self.mem[addr] = val;
 
                         self.advance_si(instr);
-                    },
-                    Instruction::Write16 => {
+                    }
+                    Instruction::WriteWord => {
                         let addr = self.regs[reg!(oc)] as usize;
                         let val = self.regs[reg!(oa)];
 
@@ -187,18 +187,18 @@ impl Kernel for Cpu {
                         self.mem[addr..=(addr+1)].copy_from_slice(&val.to_le_bytes());
 
                         self.advance_si(instr);
-                    },
-                    Instruction::Read8 => {
+                    }
+                    Instruction::ReadByte => {
                         let addr = self.regs[reg!(oc)] as usize;
                         self.regs[reg!(oa)] &= 0xff00;
                         self.regs[reg!(oa)] |= self.mem[addr] as u16;
                         self.advance_si(instr);
-                    },
-                    Instruction::Read16 => {
+                    }
+                    Instruction::ReadWord => {
                         let addr = self.regs[reg!(oc)] as usize;
                         self.regs[reg!(oa)] = u16::from_le_bytes([self.mem[addr], self.mem[addr+1]]);
                         self.advance_si(instr);
-                    },
+                    }
 
                     Instruction::Add => {
                         let sum = self.regs[reg!(oa)].overflowing_add(self.regs[reg!(ob)]);

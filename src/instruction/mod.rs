@@ -18,11 +18,11 @@ pub enum Instruction {
     SetIfZero(Register, u16),
     Copy(Register, Register),
     Swap(Register, Register),
-    
-    Write8,
-    Write16,
-    Read8,
-    Read16,
+
+    WriteByte,
+    WriteWord,
+    ReadByte,
+    ReadWord,
     
     Add,
     CompareUnsigned,
@@ -56,10 +56,10 @@ impl Instruction {
             Self::Copy(..) => InstructionId::Copy,
             Self::Swap(..) => InstructionId::Swap,
 
-            Self::Write8 => InstructionId::WriteByte,
-            Self::Write16 => InstructionId::WriteWord,
-            Self::Read8 => InstructionId::ReadByte,
-            Self::Read16 => InstructionId::ReadWord,
+            Self::WriteByte => InstructionId::WriteByte,
+            Self::WriteWord => InstructionId::WriteWord,
+            Self::ReadByte => InstructionId::ReadByte,
+            Self::ReadWord => InstructionId::ReadWord,
 
             Self::Add => InstructionId::Add,
             Self::CompareUnsigned => InstructionId::CompareUnsigned,
@@ -146,10 +146,10 @@ impl TryFrom<InstructionId> for Instruction {
             InstructionId::Copy => Err(()),
             InstructionId::Swap => Err(()),
             
-            InstructionId::WriteByte => Ok(Self::Write8),
-            InstructionId::WriteWord => Ok(Self::Write16),
-            InstructionId::ReadByte => Ok(Self::Read8),
-            InstructionId::ReadWord => Ok(Self::Read16),
+            InstructionId::WriteByte => Ok(Self::WriteByte),
+            InstructionId::WriteWord => Ok(Self::WriteWord),
+            InstructionId::ReadByte => Ok(Self::ReadByte),
+            InstructionId::ReadWord => Ok(Self::ReadWord),
             
             InstructionId::Add => Ok(Self::Add),
             InstructionId::CompareUnsigned => Ok(Self::CompareUnsigned),
