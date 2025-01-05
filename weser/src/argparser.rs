@@ -8,7 +8,7 @@ use clio::ClioPath;
 pub struct EmuArgs {
     /// cpu speed in hz
     #[arg(long = "clk", default_value_t = 200)]
-    pub clock_freq: u16,
+    pub clock_freq: u32,
     
     #[arg(long = "ram", default_value_t = 4096)]
     /// ram size in bytes

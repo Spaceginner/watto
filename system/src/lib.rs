@@ -4,39 +4,46 @@
 pub mod kernels;
 pub mod device;
 
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use crate::device::Device;
 use crate::kernels::Kernel;
 
-struct Clock {
-    delay: u32,
-    left: u32,
+struct Timer {
+    delay: Duration,
+    left: Duration,
 }
 
 
-impl Clock {
-    pub fn new(delay: u32) -> Self {
-        Self { delay, left: 1 }
+impl Timer {
+    pub fn new(delay: Duration) -> Self {
+        Self { delay, left: Duration::new(0, 0) }
     }
 
-    pub fn advance(&mut self) -> bool {
-        if self.left == 1 {
+    pub fn advance(&mut self, step: Duration) -> bool {
+        assert!(step <= self.delay);
+        if self.left.is_zero() {
             self.left = self.delay;
             true
         } else {
-            self.left -= 1;
+            self.left -= step;
             false
         }
+    }
+    
+    pub fn delay(&self) -> Duration {
+        self.delay
+    }
+    
+    pub fn left(&self) -> Duration {
+        self.left
     }
 }
 
 
 pub struct System {
-    devices: [Option<(Device, Clock)>; 16],
-    tick_delay: f32,
-    tick_freq: u32,
-    bus_freq: u16,
-    bus_clock: Clock,
+    devices: [Option<(Device, Timer)>; 16],
+    bus_freq: u32,
+    bus_timer: Timer,
     last_dev_locked_bus: Option<u8>,
 }
 
@@ -44,35 +51,32 @@ pub struct System {
 pub struct DeviceDescription {
     bus_addr: u8,
     kernel: Box<dyn Kernel>,
-    clock_freq: u16,
+    clock_freq: u32,
     verbose: bool,
 }
 
 
 impl DeviceDescription {
-    pub fn new(bus_addr: u8, kernel: Box<dyn Kernel>, clock_freq: u16, verbose: bool) -> Self {
+    pub fn new(bus_addr: u8, kernel: Box<dyn Kernel>, clock_freq: u32, verbose: bool) -> Self {
         Self { bus_addr, kernel, clock_freq, verbose }
     }
 }
 
 
 impl System {
-    pub fn new(devices: Vec<DeviceDescription>, bus_freq: u16) -> Self {
-        let tick_freq = devices.iter().map(|DeviceDescription { clock_freq, .. }| *clock_freq as u32).fold(bus_freq as u32, num::integer::lcm);
-
+    pub fn new(devices: Vec<DeviceDescription>, bus_freq: u32) -> Self {
         let mut devs = [const { None }; 16];
         for dev in devices {
             devs[dev.bus_addr as usize] = Some((
                 Device::new(dev.kernel, dev.bus_addr, dev.clock_freq, dev.verbose),
-                Clock::new(tick_freq / dev.clock_freq as u32)
+                Timer::new(Duration::from_secs_f32(1.0 / dev.clock_freq as f32))
             ));
         };
 
         Self {
             devices: devs,
-            tick_freq, bus_freq,
-            tick_delay: 1.0 / tick_freq as f32,
-            bus_clock: Clock::new(tick_freq / bus_freq as u32),
+            bus_freq,
+            bus_timer: Timer::new(Duration::from_secs_f32(1.0 / bus_freq as f32)),
             last_dev_locked_bus: None,
         }
     }
@@ -103,37 +107,36 @@ impl System {
         };
     }
 
-    pub fn tick(&mut self) {
-        for (dev, clock) in self.devices.iter_mut().filter_map(|d| d.as_mut()) {
-            if clock.advance() {
+    pub fn tick(&mut self, step: Duration) -> Duration {
+        let mut next_step = Duration::from_secs(1000);
+        for (dev, timer) in self.devices.iter_mut().filter_map(|d| d.as_mut()) {
+            if timer.advance(step) {
                 dev.tick();
             };
+            
+            next_step = next_step.min(timer.left());
         };
 
-        if self.bus_clock.advance() {
+        if self.bus_timer.advance(step) {
             self.tick_bus();
         };
+        
+        next_step.min(self.bus_timer.left())
     }
 
-    pub fn run(&mut self, seconds: Option<f32>) {
-        let mut ticks = seconds.map(|s| (s / self.tick_delay).ceil() as u32);
-        let delay = Duration::from_secs_f32(self.tick_delay); 
+    // todo make it possible to run at 100kHz
+    pub fn run(&mut self, dur: Option<Duration>) {
+        let mut runtime = Duration::new(0, 0); 
         
-        // todo better performing parallelization or idk
-        while ticks.is_none_or(|t| t != 0) {
-            let start = Instant::now();
-            
-            self.tick();
-            
-            let end = Instant::now();
-            let tick_time = end - start;
-            
-            if tick_time < delay {
-                std::thread::sleep(delay - tick_time);
-            };
+        let mut tick_delay = Duration::new(0, 0);
+        while dur.is_none_or(|d| runtime < d) {
+            std::thread::sleep(tick_delay);
 
-            if let Some(t) = ticks {
-                ticks = Some(t - 1);
+            // todo take into account how long did tick take
+            tick_delay = self.tick(tick_delay);
+
+            if dur.is_some() {
+                runtime += tick_delay;
             };
         };
     }
