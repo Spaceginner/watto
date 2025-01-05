@@ -21,16 +21,16 @@ fn main() {
         )
     ];
     
-    emu_args.device.into_iter().enumerate().for_each(|(i, dev)|
-        devs.push(DeviceDescription::new(
+    devs.extend(emu_args.device.into_iter().enumerate().map(|(i, dev)|
+        DeviceDescription::new(
             i as u8 + 2,
             match dev {
                 DeviceId::SerialPort => Box::new(Serial::new()) as Box<dyn Kernel>
             },
             emu_args.clock_freq,
-            true,
-        ))
-    );
+            false,
+        )
+    ));
     
     
     let mut system = System::new(devs, emu_args.clock_freq);
