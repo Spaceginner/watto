@@ -7,7 +7,7 @@ use clio::ClioPath;
 #[clap(version, about, long_about = None)]
 pub struct EmuArgs {
     /// cpu speed in hz
-    #[arg(long = "clk", default_value_t = 200)]
+    #[arg(long = "clk", default_value_t = 1000, value_parser = clap::value_parser!(u32).range(1..))]
     pub clock_freq: u32,
     
     #[arg(long = "ram", default_value_t = 4096)]
