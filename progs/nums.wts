@@ -49,6 +49,30 @@
     set $ga #d54321
     !m call %f_printhexnum
 
+    !m prints %text_outro
+
+    set $ga #d0
+    :f_main_loop
+        !m pushw $ga
+
+        !m call %f_printhexnum
+        !m prints %text_space
+
+        !m popw $oa
+
+        set $ob #xffff
+        cmp
+        setnz $si %f_main_loop_end
+
+        set $ob #d1
+        add
+        copy $oc $ga
+
+        set $si %f_main_loop
+    :f_main_loop_end
+
+    !m prints %text_end
+
     stop
 
 
@@ -150,10 +174,18 @@ we are going to print some numbers, dont worry.
 expected - printed
 "
 
+:text_outro !cstr "
+if everything matches, amazing!
+now here come all the other numbers, be ready!!!
+"
+
+:text_end !cstr "phew, that was a lot of numbers, well bye now!"
+
 :text_sep !cstr " - "
 :text_num_1 !cstr "3039"
 :text_num_2 !cstr "d431"
 :text_nl !cstr "
 "
+:text_space !cstr " "
 
 :stack !void
