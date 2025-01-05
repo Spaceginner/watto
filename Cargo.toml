@@ -1,0 +1,10 @@
+[workspace]
+members = ["weser", "system", "wasp"]
+
+[package]
+name = "watto"
+version = "0.0.1"
+edition = "2021"
+
+[profile.release]
+lto = "thin"
