@@ -27,13 +27,13 @@ fn main() {
             match dev {
                 DeviceId::SerialPort => Box::new(Serial::new()) as Box<dyn Kernel>
             },
-            emu_args.clock_freq,
+            emu_args.clock_freq/10,
             false,
         )
     ));
     
     
-    let mut system = System::new(devs, emu_args.clock_freq);
+    let mut system = System::new(devs, emu_args.clock_freq/15);
     
     system.run(None);
 }
