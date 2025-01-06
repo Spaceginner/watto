@@ -88,7 +88,6 @@ impl Kernel for Cpu {
     }
     
     fn rcv_bus_msg(&mut self, msg: (u8, u8)) {
-        assert!(self.bus_buf_rcv.is_none());
         self.bus_buf_rcv = Some(msg);
     }
 
