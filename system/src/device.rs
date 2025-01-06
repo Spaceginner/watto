@@ -1,9 +1,9 @@
-use crate::kernels::Kernel;
+use crate::kernels::{Kernel, DeviceKernel};
 
 pub struct Device {
     pub bus_msg_send: Option<(u8, u8)>,
     pub bus_msg_rcv: Option<(u8, u8)>,
-    pub kernel: Box<dyn Kernel>,
+    pub kernel: DeviceKernel,
     pub clock_freq: u32,
     pub verbose: bool,
     pub addr: u8,
@@ -12,7 +12,9 @@ pub struct Device {
 
 
 impl Device {
-    pub fn new(mut kernel: Box<dyn Kernel>, addr: u8, clock_freq: u32, verbose: bool) -> Self {
+    pub fn new(kernel: impl Into<DeviceKernel>, addr: u8, clock_freq: u32, verbose: bool) -> Self {
+        let mut kernel = kernel.into();
+        
         kernel.init_bus(addr);
         
         Self {

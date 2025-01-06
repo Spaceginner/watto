@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 num = { version = "0.4.3" }
 watto = { path = ".." }
+enum_dispatch = "0.3.13"

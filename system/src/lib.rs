@@ -6,7 +6,7 @@ pub mod device;
 
 use std::time::{Duration, Instant};
 use crate::device::Device;
-use crate::kernels::Kernel;
+use crate::kernels::{Kernel, DeviceKernel};
 
 struct Timer {
     delay: Duration,
@@ -52,15 +52,15 @@ pub struct System {
 
 pub struct DeviceDescription {
     bus_addr: u8,
-    kernel: Box<dyn Kernel>,
+    kernel: DeviceKernel,
     clock_freq: u32,
     verbose: bool,
 }
 
 
 impl DeviceDescription {
-    pub fn new(bus_addr: u8, kernel: Box<dyn Kernel>, clock_freq: u32, verbose: bool) -> Self {
-        Self { bus_addr, kernel, clock_freq, verbose }
+    pub fn new(bus_addr: u8, kernel: impl Into<DeviceKernel>, clock_freq: u32, verbose: bool) -> Self {
+        Self { bus_addr, kernel: kernel.into(), clock_freq, verbose }
     }
 }
 

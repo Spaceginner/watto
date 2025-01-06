@@ -2,7 +2,7 @@
 
 use clap::Parser;
 use crate::argparser::DeviceId;
-use system::kernels::{Cpu, Kernel, Serial};
+use system::kernels::{Cpu, Serial};
 use system::{DeviceDescription, System};
 
 mod argparser;
@@ -15,7 +15,7 @@ fn main() {
     let mut devs = vec![
         DeviceDescription::new(
             0x00,
-            Box::new(Cpu::new(emu_args.ram_size, &prog)) as Box<dyn Kernel>,
+            Cpu::new(emu_args.ram_size, &prog),
             emu_args.clock_freq,
             emu_args.verbose,
         )
@@ -25,7 +25,7 @@ fn main() {
         DeviceDescription::new(
             i as u8 + 2,
             match dev {
-                DeviceId::SerialPort => Box::new(Serial::new()) as Box<dyn Kernel>
+                DeviceId::SerialPort => Serial::new()
             },
             emu_args.clock_freq.div_ceil(10),
             false,
