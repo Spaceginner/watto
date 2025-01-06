@@ -4,7 +4,7 @@
 pub mod kernels;
 pub mod device;
 
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use crate::device::Device;
 use crate::kernels::Kernel;
 
@@ -20,13 +20,15 @@ impl Timer {
     }
 
     pub fn advance(&mut self, step: Duration) -> bool {
-        assert!(step <= self.delay);
         if self.left.is_zero() {
             self.left = self.delay;
             true
-        } else {
-            self.left -= step;
+        } else if let Some(next_left) = self.left.checked_sub(step) {
+            self.left = next_left;
             false
+        } else {
+            self.left = self.delay;
+            true
         }
     }
     
@@ -124,7 +126,7 @@ impl System {
         next_step.min(self.bus_timer.left())
     }
 
-    // todo make it possible to run at 100kHz
+    #[inline]
     pub fn run(&mut self, dur: Option<Duration>) {
         let mut runtime = Duration::new(0, 0); 
         
@@ -138,6 +140,24 @@ impl System {
             if dur.is_some() {
                 runtime += tick_delay;
             };
+        };
+    }
+    
+    #[inline]
+    pub fn run_and_kill_cpu(&mut self, dur: Option<Duration>) {
+        let mut runtime = Duration::new(0, 0);
+        
+        let mut tick_time = Duration::new(0, 0); 
+        let start = Instant::now();
+        while dur.is_none_or(|d| runtime < d) {
+            let _ = self.tick(tick_time);
+            
+            let end = Instant::now();
+            let total_time = end.checked_duration_since(start).unwrap_or(Duration::new(0, 1));
+            tick_time = total_time - runtime;
+            
+            
+            runtime = total_time;
         };
     }
 }

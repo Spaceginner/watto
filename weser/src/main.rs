@@ -35,5 +35,9 @@ fn main() {
     
     let mut system = System::new(devs, emu_args.clock_freq.div_ceil(15));
     
-    system.run(None);
+    if emu_args.kill_cpu {
+        system.run_and_kill_cpu(None);
+    } else {
+        system.run(None);
+    };
 }

@@ -17,7 +17,11 @@ pub struct EmuArgs {
     #[arg(long, short, default_value_t)]
     /// print out cpu state each tick
     pub verbose: bool,
-
+    
+    #[arg(long, default_value_t)]
+    /// make the emulator real fast at the cost of 100%'ing cpu core
+    pub kill_cpu: bool,
+    
     /// path to the program
     #[arg(value_parser = clap::value_parser!(ClioPath).exists().is_file())]
     pub prog: ClioPath,
