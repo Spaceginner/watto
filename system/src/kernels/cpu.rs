@@ -1,5 +1,4 @@
 use std::fmt::{Display, Formatter};
-use num::traits::ToBytes;
 use watto::{Instruction, reg, Register};
 use super::Kernel;
 
