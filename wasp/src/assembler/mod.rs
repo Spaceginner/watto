@@ -100,8 +100,8 @@ impl<P, PE> Assembler<P, PE>
                 },
                 Op::InsertByte(b) => { prog.push(b); },
                 Op::InsertWord(w) => { prog.extend(w.to_le_bytes()); },
-                Op::InsertFile(_) => todo!(),
-                Op::InsertBytes(b, count) => { (0..count).for_each(|_| prog.push(b)) ;},
+                Op::InsertBytes(mut bytes) => { prog.append(&mut bytes); },
+                Op::InsertMultipleBytes(b, count) => { (0..count).for_each(|_| prog.push(b)) ;},
                 Op::InsertCString(cstr) => { prog.extend(cstr.into_bytes_with_nul()); },
                 Op::Void => {}
             }

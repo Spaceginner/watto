@@ -14,6 +14,14 @@ pub struct AsmArgs {
     #[arg(long, short, value_parser = clap::value_parser!(ClioPath).exists().is_file(), default_value = "-")]
     pub source: ClioPath,
     
+    /// forbid absolute paths when assembling
+    #[arg(long, default_value_t = false)]
+    pub forbid_abs_includes: bool,
+    
+    /// a path to the folder containing libraries
+    #[arg(long, value_parser = clap::value_parser!(ClioPath).exists().is_dir())]
+    pub lib_path: Option<ClioPath>,
+    
     /// path to the output binary
     #[arg(long, short, value_parser = clap::value_parser!(ClioPath), default_value = "-")]
     pub out: ClioPath,

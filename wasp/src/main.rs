@@ -1,6 +1,7 @@
 #![feature(iterator_try_collect)]
 #![feature(ascii_char)]
 #![feature(let_chains)]
+#![feature(string_into_chars)]
 
 use std::error::Error;
 use std::io::{Read, Write};
@@ -30,6 +31,8 @@ fn handle_error(context: &'static str, mut err: &dyn Error) -> ! {
 fn main() {
     let args: argparser::AsmArgs = argparser::AsmArgs::parse();
 
+    let rel_path = args.source.is_local().then(|| args.source.parent().unwrap().to_path_buf());
+    
     let source = {
         let mut buf = String::new();
         args.source.read_all().unwrap().read_to_string(&mut buf).unwrap_or_else(|err| handle_error("reading source", &err));
@@ -39,7 +42,7 @@ fn main() {
     match args.format {
         Format::Binary => {
             let prog = 
-                Assembler::new(Processor::new(parser::Parser::new(Lexer::new(source.chars())), None, None, false))
+                Assembler::new(Processor::new(parser::Parser::new(Lexer::new(source.chars())), args.lib_path.map(|p| p.to_path_buf()), rel_path, !args.forbid_abs_includes).unwrap_or_else(|err| handle_error("initializing processor", &err)))
                 .assemble()
                 .unwrap_or_else(|err| handle_error("assembling program", &err));
 
@@ -72,7 +75,7 @@ fn main() {
             };
         },
         Format::Instructs => {
-            let instructs = Processor::process(&source).unwrap_or_else(|err| handle_error("processing program", &err));
+            let instructs = Processor::process_custom(&source, args.lib_path.map(|p| p.to_path_buf()), rel_path, !args.forbid_abs_includes).unwrap_or_else(|err| handle_error("processing program", &err));
 
             let mut out = args.out.create().unwrap_or_else(|err| handle_error("creating output stream", &err));
 

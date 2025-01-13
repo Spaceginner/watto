@@ -1,36 +1,8 @@
-!macro inc #d2 "
-    copy @0 $oa
-    set $ob @1
-    add
-    copy $oc @0"
+!lib "std/macros/inc.wts"
+!lib "std/macros/stack.wts"
+!lib "std/macros/funcs.wts"
+!lib "std/macros/serial.wts"
 
-!macro _push #d3 "
-    copy @0 $oa
-    copy $gd $oc
-    @1
-
-    !m inc $gd @2"
-!macro _pop #d3 "
-    !m inc $gd @2
-
-    @1
-    copy $oa @0"
-!macro pushw #d1 "!m _push @0 writew #d2"
-!macro pushb #d1 "!m _push @0 writeb #d1"
-!macro popw #d1 "!m _pop @0 readw #xfffe"
-!macro popb #d1 "!m _pop @0 readb #xffff"
-
-!macro call #d1 "set $gc ~2 set $si @0"
-!macro ret #d0 "copy $gc $si"
-!macro calls #d1 "
-    !m pushw $gc
-    !m call @0
-    !m popw $gc"
-
-!macro sgc #d0 "!m pushw $gc"
-!macro rets #d0 "!m popw $si"
-
-!macro prints #d1 "set $ga @0 !m call %f_printcstr"
 
 :f_main
     set $gd %stack
@@ -73,101 +45,14 @@
 
     !m prints %text_end
 
+    set $si %f_main  / infinite loop for profiling
+
     stop
 
 
-/ prints a word-sized num to serial in hex
-/ num: $ga
-/ port: $gb
-/ destroys: $ga
-:f_printhexnum
-    !m sgc
+!lib "std/serial/printcstr.wts"
+!lib "std/serial/printhexnum.wts"
 
-    set $gc #d0
-
-    copy $ga $oa
-
-    :f_printhexnum_loop
-        rot
-        rot
-        rot
-        rot
-
-        copy $oa $ga
-
-        set $ob #b1111
-        and
-        copy $oc $oa
-
-        set $ob #d10
-        cmp
-        setz $ob #x30   / '0'
-        setnz $ob #x57  / 'a' - 10
-        add
-
-        set $oa #xffff
-        ioww
-
-        copy $oc $oa
-        copy $gb $oc
-        iow
-
-        copy $gc $oa
-        set $ob #d3
-        cmp
-        setnz $si %f_printhexnum_loop_end
-
-        !m inc $gc #d1
-
-        copy $ga $oa
-
-        set $si %f_printhexnum_loop
-    :f_printhexnum_loop_end
-
-    !m rets
-
-
-/ prints a c-str to serial
-/ pointer: $ga
-/ port: $gb
-/ destroys: $ga
-:f_printcstr
-    !m sgc
-
-    :f_printcstr_loop
-        / read & save char
-        copy $ga $oc
-        readb
-        set $ob #x00ff
-        and
-        copy $oc $gc
-
-        / if c == 0x00: break
-        copy $oc $oa
-        set $ob #x00
-        cmp
-        copy $oc $oa
-        set $ob #b01
-        and
-        setnz $si %f_printcstr_loop_end
-
-        / wait for previous write
-        set $oa #xffff
-        ioww
-
-        / write to serial
-        copy $gc $oa
-        copy $gb $oc
-        iow
-
-        / inc pointer
-        !m inc $ga #d1
-
-        / continue
-        set $si %f_printcstr_loop
-    :f_printcstr_loop_end
-
-    !m rets
 
 :text_intro !cstr "hi! this is a test at printing numbers.
 we are going to print some numbers, dont worry.

@@ -9,17 +9,25 @@ pub struct EmuArgs {
     /// cpu speed in hz
     #[arg(long = "clk", default_value_t = 1000, value_parser = clap::value_parser!(u32).range(1..))]
     pub clock_freq: u32,
+
+    /// a coefficient for devices clocks frequency (= cpu ÷ coef)
+    #[arg(long = "bus-coef", default_value_t = 10)]
+    pub devs_clocks_freq_coef: u32,
     
-    #[arg(long = "ram", default_value_t = 4096)]
+    /// a coefficient for bus clock frequency (= cpu ÷ coef)
+    #[arg(long = "devs-coef", default_value_t = 15)]
+    pub bus_clock_freq_coef: u32,
+    
     /// ram size in bytes
+    #[arg(long = "ram", default_value_t = 4096)]
     pub ram_size: u16,
     
-    #[arg(long, short, default_value_t)]
     /// print out cpu state each tick
+    #[arg(long, short, default_value_t)]
     pub verbose: bool,
     
-    #[arg(long, default_value_t)]
     /// make the emulator real fast at the cost of 100%'ing cpu core
+    #[arg(long, default_value_t)]
     pub kill_cpu: bool,
     
     /// path to the program

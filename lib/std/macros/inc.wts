@@ -1,0 +1,5 @@
+!macro inc #d2 "
+    copy @0 $oa
+    set $ob @1
+    add
+    copy $oc @0"

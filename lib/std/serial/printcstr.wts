@@ -1,0 +1,45 @@
+!lib "std/macros/inc.wts"
+!lib "std/macros/stack.wts"
+!lib "std/macros/funcs.wts"
+
+/ prints a c-str to serial
+/ pointer: $ga
+/ port: $gb
+/ destroys: $ga
+:f_printcstr
+    !m sgc
+
+    :f_printcstr_loop
+        / read & save char
+        copy $ga $oc
+        readb
+        set $ob #x00ff
+        and
+        copy $oc $gc
+
+        / if c == 0x00: break
+        copy $oc $oa
+        set $ob #x00
+        cmp
+        copy $oc $oa
+        set $ob #b01
+        and
+        setnz $si %f_printcstr_loop_end
+
+        / wait for previous write
+        set $oa #xffff
+        ioww
+
+        / write to serial
+        copy $gc $oa
+        copy $gb $oc
+        iow
+
+        / inc pointer
+        !m inc $ga #d1
+
+        / continue
+        set $si %f_printcstr_loop
+    :f_printcstr_loop_end
+
+    !m rets

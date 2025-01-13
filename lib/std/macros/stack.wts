@@ -1,0 +1,17 @@
+/ --- depends on macros/inc.wts
+
+!macro _push #d3 "
+    copy @0 $oa
+    copy $gd $oc
+    @1
+
+    !m inc $gd @2"
+!macro _pop #d3 "
+    !m inc $gd @2
+
+    @1
+    copy $oa @0"
+!macro pushw #d1 "!m _push @0 writew #d2"
+!macro pushb #d1 "!m _push @0 writeb #d1"
+!macro popw #d1 "!m _pop @0 readw #xfffe"
+!macro popb #d1 "!m _pop @0 readb #xffff"

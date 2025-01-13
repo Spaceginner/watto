@@ -1,6 +1,7 @@
 use crate::parser::{Element, ElementValue};
 
 
+#[derive(Debug, Clone)]
 pub(super) struct Macro {
     pub sub_count: usize,
     pub source: Vec<Element>,

@@ -126,7 +126,6 @@ impl System {
         next_step.min(self.bus_timer.left())
     }
 
-    #[inline]
     pub fn run(&mut self, dur: Option<Duration>) {
         let mut runtime = Duration::new(0, 0); 
         
@@ -142,8 +141,7 @@ impl System {
             };
         };
     }
-    
-    #[inline]
+
     pub fn run_and_kill_cpu(&mut self, dur: Option<Duration>) {
         let mut runtime = Duration::new(0, 0);
         

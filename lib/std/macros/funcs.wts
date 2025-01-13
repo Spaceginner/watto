@@ -1,0 +1,11 @@
+/ --- depends on std/stack.wts
+
+!macro call #d1 "set $gc ~2 set $si @0"
+!macro ret #d0 "copy $gc $si"
+!macro calls #d1 "
+    !m pushw $gc
+    !m call @0
+    !m popw $gc"
+
+!macro sgc #d0 "!m pushw $gc"
+!macro rets #d0 "!m popw $si"

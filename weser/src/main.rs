@@ -27,13 +27,13 @@ fn main() {
             match dev {
                 DeviceId::SerialPort => Serial::new()
             },
-            emu_args.clock_freq.div_ceil(10),
-            false,
+            emu_args.clock_freq.div_ceil(emu_args.devs_clocks_freq_coef),
+            emu_args.verbose,
         )
     ));
     
     
-    let mut system = System::new(devs, emu_args.clock_freq.div_ceil(15));
+    let mut system = System::new(devs, emu_args.clock_freq.div_ceil(emu_args.devs_clocks_freq_coef));
     
     if emu_args.kill_cpu {
         system.run_and_kill_cpu(None);

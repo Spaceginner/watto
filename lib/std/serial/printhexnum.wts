@@ -1,0 +1,53 @@
+!lib "std/macros/inc.wts"
+!lib "std/macros/stack.wts"
+!lib "std/macros/funcs.wts"
+
+/ prints a word-sized num to serial in hex
+/ num: $ga
+/ port: $gb
+/ destroys: $ga
+:f_printhexnum
+    !m sgc
+
+    set $gc #d0
+
+    copy $ga $oa
+
+    :f_printhexnum_loop
+        rot
+        rot
+        rot
+        rot
+
+        copy $oa $ga
+
+        set $ob #b1111
+        and
+        copy $oc $oa
+
+        set $ob #d10
+        cmp
+        setz $ob #x30   / '0'
+        setnz $ob #x57  / 'a' - 10
+        add
+
+        set $oa #xffff
+        ioww
+
+        copy $oc $oa
+        copy $gb $oc
+        iow
+
+        copy $gc $oa
+        set $ob #d3
+        cmp
+        setnz $si %f_printhexnum_loop_end
+
+        !m inc $gc #d1
+
+        copy $ga $oa
+
+        set $si %f_printhexnum_loop
+    :f_printhexnum_loop_end
+
+    !m rets

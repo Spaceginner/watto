@@ -53,8 +53,8 @@ pub enum Op {
 
     InsertByte(u8),
     InsertWord(u16),
-    InsertFile(std::path::PathBuf),
-    InsertBytes(u8, u16),
+    InsertBytes(Vec<u8>),  // todo dont load entire file into memory, instead provide a file handle
+    InsertMultipleBytes(u8, u16),
     InsertCString(CString),
 
     Void,
@@ -70,8 +70,8 @@ impl Op {
             
             Self::InsertByte(..) => 1,
             Self::InsertWord(..) => 2,
-            Self::InsertFile(..) => todo!(),
-            Self::InsertBytes(_, count) => *count as usize,
+            Self::InsertBytes(bytes) => bytes.len(),
+            Self::InsertMultipleBytes(_, count) => *count as usize,
             Self::InsertCString(cstr) => cstr.as_bytes_with_nul().len(),
             
             Self::Void => 0,
@@ -94,8 +94,8 @@ impl Display for Op {
             
             Op::InsertByte(b) => write!(f, "!byte #d{b}"),
             Op::InsertWord(w) => write!(f, "!word #d{w}"),
-            Op::InsertFile(path) => write!(f, "!file \"{}\"", path.display()),
-            Op::InsertBytes(b, count) => write!(f, "!bytes #d{b} #d{count}"),
+            Op::InsertBytes(_) => write!(f, "!file \"...\""),
+            Op::InsertMultipleBytes(b, count) => write!(f, "!bytes #d{b} #d{count}"),
             Op::InsertCString(s) => write!(f, "!cstr \"{}\"", s.to_string_lossy()),
             
             Op::Void => write!(f, "!void")
